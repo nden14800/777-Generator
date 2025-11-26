@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<!-- KaTeX requires the use of the HTML5 doctype. -->
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>777 生成器</title>
+
+    <!-- Google Fonts: Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css" integrity="sha384-WcoG4HRXMzYzfCgiyfrySxx90XSl2rxY5mnVY5TwtWE6KLrArNKn0T/mOgNL0Mmi" crossorigin="anonymous">
+
+    <!-- KaTeX JS (Deferred) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.js" integrity="sha384-J+9dG2KMoiR9hqcFao0IBLwxt6zpcyN68IgwzsCSkbreXUjmNVRhPFTssqdSGjwQ" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+
+    <style>
+        /* テーマ変数定義 */
+        :root {
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --primary-color: #d32f2f; /* 7の赤 */
+            --primary-hover: #b71c1c;
+            --input-border: #cccccc;
+            --input-bg: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --toggle-bg-off: #999;
+            --toggle-bg-on: #4caf50;
+            --result-bg: rgba(127, 127, 127, 0.08);
+            --scrollbar-thumb: rgba(0, 0, 0, 0.2);
+        }
+
+        /* ダークモード自動適用 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121212;
+                --container-bg: #1e1e1e;
+                --text-color: #e0e0e0;
+                --primary-color: #ef5350;
+                --primary-hover: #d32f2f;
+                --input-border: #444444;
+                --input-bg: #2c2c2c;
+                --shadow: rgba(0, 0, 0, 0.5);
+                --toggle-bg-off: #555;
+                --result-bg: rgba(255, 255, 255, 0.05);
+                --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px var(--shadow);
+            width: 90%;
+            max-width: 650px;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+
+        h1 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        h1 i {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+        }
+
+        p.subtitle {
+            font-weight: 400;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+            font-size: 0.95rem;
+        }
+
+        /* コントロールエリア */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        /* スイッチのデザイン */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--toggle-bg-off);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--toggle-bg-on);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* 入力エリア */
+        .input-group {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 14px 16px;
+            font-size: 1.2rem;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: 'Roboto', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button.convert-btn {
+            padding: 0 25px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button.convert-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.convert-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 結果表示エリア（スクロール対応修正版） */
+        #result-area {
+            min-height: 120px;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: var(--result-bg);
+            margin-top: 10px;
+            
+            /* スクロール有効化 */
+            overflow-x: auto;
+            
+            /* レイアウト修正: align-items: centerだと左が切れるためflex-startに変更 */
+            display: flex;
+            flex-direction: column; 
+            justify-content: center; /* 縦方向は中央 */
+            align-items: flex-start; /* 横方向は左詰め（必須） */
+        }
+
+        /* 
+           子要素（数式）に左右autoマージンを与えることで、
+           幅に余裕があるときは中央に、溢れるときは左詰めでスクロール可能にする
+        */
+        #result-area > * {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* スクロールバーのカスタマイズ */
+        #result-area::-webkit-scrollbar {
+            height: 8px;
+        }
+        #result-area::-webkit-scrollbar-thumb {
+            background-color: var(--scrollbar-thumb);
+            border-radius: 4px;
+        }
+        #result-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .katex-display {
+            margin: 0;
+            padding: 10px 0;
+            /* Flexアイテムとしての縮小防止 */
+            min-width: min-content;
+        }
+        
+        .error-msg {
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .placeholder-text {
+            opacity: 0.5;
+            font-style: italic;
+            font-size: 1rem;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><i class="bi bi-heptagon-fill"></i> 777 生成器</h1>
+    <p class="subtitle">任意の整数を3つ以上の「7」を使った式に変換します</p>
+
+    <div class="controls">
+        <div class="switch-container">
+            <i class="bi bi-lightning-charge"></i>
+            <span>即時変換</span>
+            <label class="switch">
+                <input type="checkbox" id="instantSwitch">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="input-group">
+            <input type="number" id="numberInput" placeholder="整数を入力..." onkeydown="if(event.key==='Enter') generate()">
+            <button class="convert-btn" onclick="generate()" title="変換">
+                <i class="bi bi-arrow-return-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <span class="placeholder-text">ここに数式が表示されます</span>
+    </div>
+</div>
+
+<script>
+    // --- ロジック部分 ---
+
+    /**
+     * 数字nを7だけで構成された数式(LaTeX形式)に変換する
+     * 分数は使わず、割り算記号(\div)を使用する
+     */
+    function toSeven(n) {
+        n = Math.round(n);
+
+        // 負の数の場合
+        if (n < 0) {
+            return `-\\left(${toSeven(-n)}\\right)`;
+        }
+
+        // 基本定義
+        if (n === 0) return "7-7";
+        if (n === 7) return "7";
+        
+        // 小さい数を割り算と足し算で定義 (分数は使わない)
+        if (n === 1) return "7 \\div 7";
+        if (n === 2) return "(7+7) \\div 7";
+        if (n === 3) return "(7+7+7) \\div 7";
+
+        // n = 7 * q + r アルゴリズム
+        const quotient = Math.round(n / 7);
+        const remainder = n - (quotient * 7);
+
+        // 商の式を作成
+        let quotientExpr;
+        if (quotient === 1) {
+            quotientExpr = "7";
+        } else {
+            // 掛け算の優先順位のため括弧をつける
+            quotientExpr = `\\left(${toSeven(quotient)}\\right) \\times 7`;
+        }
+
+        // 余りの処理
+        if (remainder === 0) {
+            return quotientExpr;
+        } else if (remainder > 0) {
+            return `${quotientExpr} + ${toSeven(remainder)}`;
+        } else {
+            return `${quotientExpr} - ${toSeven(-remainder)}`;
+        }
+    }
+
+    /**
+     * 文字列内の「7」の出現回数をカウントする
+     */
+    function countSevens(str) {
+        return (str.match(/7/g) || []).length;
+    }
+
+    /**
+     * 7の数が3つ未満の場合、値を変えずに7を増やす
+     * (+ 7 - 7) を追加することで値を維持しつつ7を2つ増やす
+     */
+    function ensureMinThreeSevens(latexStr) {
+        let count = countSevens(latexStr);
+        
+        while (count < 3) {
+            // 式の最後に "+ 7 - 7" を追加
+            latexStr += " + 7 - 7";
+            count += 2;
+        }
+        return latexStr;
+    }
+
+    function generate() {
+        const input = document.getElementById('numberInput').value;
+        const resultArea = document.getElementById('result-area');
+
+        if (input.trim() === "") {
+            resultArea.innerHTML = '<span class="placeholder-text">数字を入力して変換してください</span>';
+            return;
+        }
+
+        const num = parseFloat(input);
+
+        // 整数チェック
+        if (!Number.isInteger(num)) {
+            resultArea.innerHTML = '<span class="error-msg"><i class="bi bi-exclamation-triangle-fill"></i> 整数を入力してください</span>';
+            return;
+        }
+
+        try {
+            // 式生成
+            let formula = toSeven(num);
+            
+            // 7の数が3つ以上かチェックし、不足していれば補填
+            formula = ensureMinThreeSevens(formula);
+
+            const latex = `${num} = ${formula}`;
+
+            // 表示のリセット
+            resultArea.innerHTML = "";
+            
+            // KaTeX描画
+            katex.render(latex, resultArea, {
+                throwOnError: false,
+                displayMode: true 
+            });
+
+        } catch (e) {
+            console.error(e);
+            resultArea.innerHTML = '<span class="error-msg"><i class="bi bi-x-circle-fill"></i> 計算エラーが発生しました</span>';
+        }
+    }
+
+    // --- イベントリスナー設定 ---
+
+    const numberInput = document.getElementById('numberInput');
+    const instantSwitch = document.getElementById('instantSwitch');
+
+    // 入力時の動作
+    numberInput.addEventListener('input', () => {
+        if (instantSwitch.checked) {
+            generate();
+        }
+    });
+
+    // スイッチをONにした瞬間に計算を実行する
+    instantSwitch.addEventListener('change', () => {
+        if (instantSwitch.checked) {
+            generate();
+        }
+    });
+
+</script>
+
+</body>
+</html>
